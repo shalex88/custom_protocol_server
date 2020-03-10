@@ -175,30 +175,37 @@ int main(int argc, char *argv[])
         {
             error("Can’t open secondary socket");
         }
-        if (say(connect_d,"Internet Knock-Knock Protocol Server\r\nVersion 1.0\r\nKnock! Knock!\r\n> ") != -1)
+
+        if (fork() == 0) /* Creates child proccess and enters it */
         {
-            read_in(connect_d, buf, sizeof(buf));
-            if (strncasecmp("Who's there?", buf, 12)) /* Check if received message is valid */
+            close(listener_d); /* child closes main listener socket */
+            if (say(connect_d,"Internet Knock-Knock Protocol Server\r\nVersion 1.1\r\nKnock! Knock!\r\n> ") != -1)
             {
-                say(connect_d, "You should say 'Who's there?'!");
-            }
-            else /* received valid message */
-            {
-                if (say(connect_d, "Oscar\r\n> ") != -1)
+                read_in(connect_d, buf, sizeof(buf));
+                if (strncasecmp("Who's there?", buf, 12)) /* Check if received message is valid */
                 {
-                    read_in(connect_d, buf, sizeof(buf));
-                    if (strncasecmp("Oscar who?", buf, 10)) /* Check if received message is valid */
+                    say(connect_d, "You should say 'Who's there?'!");
+                }
+                else /* Received valid message */
+                {
+                    if (say(connect_d, "Oscar\r\n> ") != -1)
                     {
-                        say(connect_d, "You should say 'Oscar who?'!\r\n");
-                    }
-                    else /* received valid message */
-                    {
-                        say(connect_d, "Oscar silly question, you get a silly answer\r\n");
+                        read_in(connect_d, buf, sizeof(buf));
+                        if (strncasecmp("Oscar who?", buf, 10)) /* Check if received message is valid */
+                        {
+                            say(connect_d, "You should say 'Oscar who?'!\r\n");
+                        }
+                        else /* Received valid message */
+                        {
+                            say(connect_d, "Oscar silly question, you get a silly answer\r\n");
+                        }
                     }
                 }
             }
-            
+            close(connect_d);
+            exit(0); /* Child prossess finished and exits */
         }
+        puts("Client connected");
         close(connect_d);
     }
     return 0;
